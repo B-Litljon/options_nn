@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "efbea91138a641a5802542703d6dff605ceaaaa481e6574593447f56d5190f67"
+            "sha256": "92dc898cea6a1a9bcfb1d83b36b1fe1ee8b3b6a2a30c9e253935017e83028599"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,6 +16,13 @@
         ]
     },
     "default": {
+        "alpaca": {
+            "hashes": [
+                "sha256:a02b0b317c8cb098a0c78fd62909f88d971530fbbccbdb4abca2c18413833ba0"
+            ],
+            "index": "pypi",
+            "version": "==1.0.0"
+        },
         "alpaca-py": {
             "hashes": [
                 "sha256:ae7690325668244fdf7793d28695fd1ce2ff479e654c678756053ba363efb838",
@@ -939,7 +946,7 @@
                 "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3",
                 "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==2.9.0.post0"
         },
         "pytz": {
@@ -1049,7 +1056,7 @@
                 "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926",
                 "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==1.16.0"
         },
         "sseclient-py": {
@@ -1103,7 +1110,7 @@
                 "sha256:c9d64ae33bcb3a7a18081e3a746e8cf87ca8623ca13d2c362413ce7a486f893e",
                 "sha256:eaf80e8761a9e3498aa92e7bf83a085b31959c61f5e8ac14eedd018df6fccd10"
             ],
-            "markers": "platform_system == 'Linux' and platform_machine == 'x86_64' and python_version < '3.12'",
+            "markers": "python_version < '3.12' and platform_system == 'Linux' and platform_machine == 'x86_64'",
             "version": "==2.3.1"
         },
         "typing-extensions": {

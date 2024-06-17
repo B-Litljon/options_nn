@@ -10,6 +10,7 @@ matplotlib = "*"
 torch = "*"
 river = "*"
 alpaca-py = "*"
+alpaca = "*"
 
 [dev-packages]
 
