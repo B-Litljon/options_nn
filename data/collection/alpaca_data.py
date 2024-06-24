@@ -1,40 +1,28 @@
 import json
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
-
-import alpaca
+from alpaca.data import (
+    StockHistoricalDataClient, OptionHistoricalDataClient, 
+    StockBarsRequest, OptionChainRequest, OptionContractsRequest
+)
+from alpaca.data.live import StockDataStream, OptionDataStream
 from alpaca.data.historical.screener import ScreenerClient
-from alpaca.data.live.stock import StockDataStream
-from alpaca.data.historical.stock import (
-    StockHistoricalDataClient,
-    StockBarsRequest,
-    StockTradesRequest,
-    StockQuotesRequest,
-)
-from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
-from alpaca.data.live.option import OptionDataStream
-from alpaca.data.historical.option import (
-    OptionHistoricalDataClient,
-    OptionBarsRequest,
-    OptionSnapshotRequest,
-    OptionChainRequest,
-)
-from alpaca.data.requests import GetAssetsRequest
-from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
-from alpaca.trading.client import TradingClient
+
 from alpaca.trading.requests import GetOptionContractsRequest
-from alpaca.trading.enums import AssetStatus, ExerciseStyle
-from alpaca.common.exceptions import APIError
+from alpaca.trading.enums import AssetStatus, ContractType, ContractStyle
+
 
 
 class DataCollector:
     def __init__(self, api_key, secret_key, symbol, timeframe, days_back):
-        self.historical_client = StockHistoricalDataClient(api_key, secret_key)
-        self.historical_option_client = OptionHistoricalDataClient(api_key, secret_key)
+        self.historical_asset = StockHistoricalDataClient(api_key, secret_key)
+        self.historical_options = OptionHistoricalDataClient(api_key, secret_key)
         self.asset_screener = ScreenerClient(api_key, secret_key)
-        self.live_client = StockDataStream(api_key, secret_key)
-        self.option_live_client = OptionDataStream(api_key, secret_key)
+        self.stream_stock = StockDataStream(api_key, secret_key)
+        self.stream_options = OptionDataStream(api_key, secret_key)
         self.symbol = symbol
+        self.timeframe = timeframe
+        self.days_back = days_back
     
 
     # we can use the screener api to filter for the most active stocks or market movers
@@ -42,16 +30,23 @@ class DataCollector:
     # with the symbol as the key, and the ohlcv data as the values 
     # then we can request the options chain data for each stock in the dictionary
 
+    def get_most_active_stocks(self):
+        data = self.asset_screener.get_most_actives()
+        return data
+    
+    def get_market_movers(self):
+        data = self.asset_screener.get_market_movers()
+        return data
+    
     def get_stock_data(self, symbol, timeframe, days_back):
         end = datetime.now(ZoneInfo("America/Pacific"))
         start = end - timedelta(days=days_back)
         data = StockBarsRequest(symbol, timeframe, start, end)
-        return self.historical_client.get_bars(data)
+        return self.historical_asset.get_bars(data)
     
-    def most_active_stocks(self):
-        data = self.asset_screener.get_most_actives()
-        return data
-    
-    def market_movers(self):
-        data = self.asset_screener.get_market_movers()
-        return data
+    def get_option_chain_data(self, symbol, expiration_date=None):
+        # this method should be used to get the 
+        pass
+
+    def get_contracts(self, symbol, strike_price, put_call=None, expiration_date=None):
+        pass
