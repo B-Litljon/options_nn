@@ -1,24 +1,14 @@
-from collection.options_chain_data import OptionsChainDataCollector
-from collection.ohlcv_data import StockDataCollector
-import pandas as pd
-import pandas as pd
-import numpy as np
-from collection.options_chain_data import OptionsChainDataCollector
-from collection.ohlcv_data import StockDataCollector
 
-from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
-
+from data.collection.alpaca_data import DataCollector as dc
 import pandas as pd
 import numpy as np
 
-from collection.options_chain_data import OptionsDataCollector
-from collection.ohlcv_data import StockDataCollector
+
 
 class DataProcessor:
     def __init__(self, api_key, secret_key, paper=True):
-        self.underlying_asset = StockDataCollector(api_key, secret_key)
-        self.contracts_data = OptionsDataCollector(api_key, secret_key, paper)
+        self.underlying_asset = dc.req_stock_data(api_key, secret_key)
+        self.contracts_data = dc.req_options_data(api_key, secret_key, paper)
         # class attribute for for the symbols, timeframe, and days_back for modularity
 
 
