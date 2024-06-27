@@ -1,5 +1,5 @@
 
-from data.collection.alpaca_data import DataCollector as dc
+from data.collection.alpaca_data import DataCollector 
 import pandas as pd
 import numpy as np
 
@@ -7,10 +7,18 @@ import numpy as np
 
 class DataProcessor:
     def __init__(self, api_key, secret_key, paper=True):
-        self.underlying_asset = dc.req_stock_data(api_key, secret_key)
-        self.contracts_data = dc.req_options_data(api_key, secret_key, paper)
+        self.dc = DataCollector(api_key, secret_key)
+        self.stocks = {}
         # class attribute for for the symbols, timeframe, and days_back for modularity
-
+     
+    def get_top_assets (): 
+        dc.get_most_active_stocks()
+        dc.get_market_movers()
+        # get the top assets from the screener data
+        # we can use the screener api to filter for the most active stocks or market movers
+        # then return a dictionary of whichever stocks we like
+        # with the symbol as the key, and the ohlcv data as the values 
+        # then we can request the options chain data for each stock in the dictionary
 
     def process_underlying_asset_data(self, symbol, days_back, timeframe):
         return 
