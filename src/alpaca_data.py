@@ -23,7 +23,8 @@ class DataCollector:
         self.timeframe = timeframe
         self.days_back = days_back
         self.watchlist = {}  # Initialize the watchlist attribute
-
+# dev note, need to find way to pass the timeframe more smoothly so that each instance of the class can have a different timeframe. 
+# also need to include data cleaning here in this class, just for simplicity sake 
     def stocks_to_watch(self):
         """
         Populates the watchlist attribute with the most active stocks and their corresponding trade count and volume.
