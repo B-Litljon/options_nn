@@ -43,7 +43,7 @@ class DataCollector:
 
     def get_option_contracts(self, symbol):
         request_params = GetOptionContractsRequest(
-            underlying_symbols=list(symbol.keys()),  # assuming watchlist is a dict with stock names as keys
+            underlying_symbols=list(symbol),  # assuming watchlist is a dict with stock names as keys
             status=AssetStatus.ACTIVE,  # default status
             expiration_date=None,  # default expiration date
             expiration_date_gte=None,
@@ -61,6 +61,7 @@ class DataCollector:
     def collect_data_for_watchlist(self, watchlist):
         collected_data = {}
         # this is a fugly, slow implementation, but it'll work for now while we iron out the kinks
+        # gemini wrote this, but it should iterate through the watchlist, then call each of the data request methods, using the symbol from the watchlist as the input (untested)
         for symbol in watchlist:
             collected_data[symbol] = {
                 'stock_data': self.get_stock_data(symbol),
