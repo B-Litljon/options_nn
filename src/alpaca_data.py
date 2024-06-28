@@ -41,19 +41,31 @@ class DataCollector:
         # this method should be used to get the 
         pass
 
-    def get_option_contracts(self, underlying_symbols, **kwargs):
+    def get_option_contracts(self, symbol):
         request_params = GetOptionContractsRequest(
-            underlying_symbols=underlying_symbols,
-            status=kwargs.get('status', AssetStatus.ACTIVE),
-            expiration_date=kwargs.get('expiration_date'),
-            expiration_date_gte=kwargs.get('expiration_date_gte'),
-            expiration_date_lte=kwargs.get('expiration_date_lte'),
-            root_symbol=kwargs.get('root_symbol'),
-            type=kwargs.get('type'),
-            style=kwargs.get('style'),
-            strike_price_gte=kwargs.get('strike_price_gte'),
-            strike_price_lte=kwargs.get('strike_price_lte'),
-            limit=kwargs.get('limit'),
-            page_token=kwargs.get('page_token')
+            underlying_symbols=list(symbol.keys()),  # assuming watchlist is a dict with stock names as keys
+            status=AssetStatus.ACTIVE,  # default status
+            expiration_date=None,  # default expiration date
+            expiration_date_gte=None,
+            expiration_date_lte=None,
+            root_symbol=None,
+            type=None,
+            style=None,
+            strike_price_gte=None,
+            strike_price_lte=None,
+            limit=None,
+            page_token=None
         )
         return self.trade_client.get_option_contracts(request_params)
+    
+    def collect_data_for_watchlist(self, watchlist):
+        collected_data = {}
+        # this is a fugly, slow implementation, but it'll work for now while we iron out the kinks
+        for symbol in watchlist:
+            collected_data[symbol] = {
+                'stock_data': self.get_stock_data(symbol),
+                'option_chain_data': self.get_option_chain_data(symbol),  # Replace with your actual implementation
+                'option_contracts': self.get_option_contracts([symbol]), # Pass a single symbol
+            }
+
+        return collected_data
