@@ -1,6 +1,5 @@
 import json
-from dotenv import load_dotenv
-import os
+
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from alpaca.data import (
@@ -13,8 +12,6 @@ from alpaca.data.historical.screener import ScreenerClient
 from alpaca.trading.requests import GetOptionContractsRequest
 from alpaca.trading.enums import AssetStatus, ContractType, ContractStyle
 
-api_key = os.getenv('API_KEY')
-secret_key = os.getenv('API_SECRET')
 
 class DataCollector:
     def __init__(self, api_key, secret_key, timeframe, days_back):

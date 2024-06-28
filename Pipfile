@@ -11,6 +11,7 @@ torch = "*"
 river = "*"
 alpaca-py = "*"
 alpaca = "*"
+python-dotenv = "*"
 
 [dev-packages]
 

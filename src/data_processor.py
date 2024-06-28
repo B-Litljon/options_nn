@@ -1,5 +1,5 @@
 
-from data.collection.alpaca_data import DataCollector 
+from src.alpaca_data import DataCollector 
 import pandas as pd
 import numpy as np
 
