@@ -17,6 +17,7 @@ class DataCollector:
     def __init__(self, api_key, secret_key, timeframe, days_back):
         self.historical_asset = StockHistoricalDataClient(api_key, secret_key)
         self.asset_screener = ScreenerClient(api_key, secret_key)
+        self.historic_options = OptionHistoricalDataClient(api_key, secret_key)
         self.timeframe = timeframe
         self.days_back = days_back
         self.watchlist = {}  # Initialize the watchlist attribute
@@ -39,6 +40,7 @@ class DataCollector:
     
     def get_option_chain_data(self, symbol, expiration_date=None):
         # this method should be used to get the 
+        
         pass
 
     def get_option_contracts(self, symbol):
