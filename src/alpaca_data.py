@@ -2,10 +2,10 @@ import json
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from alpaca.data import (
-    StockHistoricalDataClient, OptionHistoricalDataClient, 
-    StockBarsRequest, OptionChainRequest
+    StockHistoricalDataClient, StockBarsRequest, OptionChainRequest
 )
-from alpaca.data.live import StockDataStream, OptionDataStream
+from alpaca.data.historical.option import OptionHistoricalDataClient
+#from alpaca.data.live import StockDataStream, OptionDataStream
 from alpaca.data.historical.screener import ScreenerClient
 
 
@@ -23,8 +23,9 @@ class DataCollector:
         self.timeframe = timeframe
         self.days_back = days_back
         self.watchlist = {}  # Initialize the watchlist attribute
-# dev note, need to find way to pass the timeframe more smoothly so that each instance of the class can have a different timeframe. 
-# also need to include data cleaning here in this class, just for simplicity sake 
+    # dev note, need to find way to pass the timeframe more smoothly so that each instance of the class can have a different timeframe. 
+    # also need to include data cleaning here in this class, just for simplicity sake and to keep the data clean and consistent.
+    # second note: need to include indicator calculations as well
     def stocks_to_watch(self):
         """
         Populates the watchlist attribute with the most active stocks and their corresponding trade count and volume.
@@ -33,7 +34,6 @@ class DataCollector:
         None
         """
         active_stock_data = self.asset_screener.get_most_actives()["most_actives"]
-
         for stock_info in active_stock_data:
             symbol = stock_info['symbol']
             self.watchlist[symbol] = {
@@ -51,7 +51,7 @@ class DataCollector:
         Returns:
         StockBarsResponse: A StockBarsResponse object containing the historical stock data.
         """
-        end = datetime.now(ZoneInfo("America/Pacific"))
+        end = datetime.now(ZoneInfo("America/LosAngeles"))
         start = end - timedelta(days=self.days_back)
         data = StockBarsRequest(symbol, self.timeframe, start, end)
         return self.historical_asset.get_bars(data)
@@ -68,11 +68,9 @@ class DataCollector:
         """
         request_params = OptionChainRequest(symbol=symbol)
         option_chain_snapshot = self.historic_options.get_option_chain(request_params)
-
-        
         return option_chain_snapshot
 
-    def collect_data_for_watchlist(self, watchlist):
+    def collect_data_for_watchlist(self, watchlist): # really fugly way to accomplish this, in the future batch the requests to save resources and api calls
         """
         Collects historical stock data and option chain data for each symbol in the watchlist.
 
@@ -83,7 +81,6 @@ class DataCollector:
         dict: A dictionary where each key is a stock symbol and the value is another dictionary containing the historical stock data and option chain data.
         """
         collected_data = {}
-
         for symbol in watchlist:
             collected_data[symbol] = {
                 'stock_data': self.get_stock_data(symbol),
