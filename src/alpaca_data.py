@@ -24,7 +24,7 @@ class StockDataCollector:
         active_stock_data = response.get("most_actives", [])
 
         # Extract only the symbols and add them to the watchlist
-        self.watchlist = [stock_info['symbol'] for stock_info in active_stock_data if 'symbol' in stock_info]
+        self.watchlist = {stock['symbol']: None for stock in active_stock_data}
 
     def get_watchlist(self):
         return self.watchlist
