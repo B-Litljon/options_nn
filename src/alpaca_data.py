@@ -6,6 +6,7 @@ from alpaca.data import (
     StockBarsRequest,
     OptionChainRequest
 )
+from alpaca.data.requests import MostActivesRequest
 from alpaca.data.historical.option import OptionHistoricalDataClient
 from alpaca.data.historical.screener import ScreenerClient
 
@@ -18,13 +19,15 @@ class StockDataCollector:
         self.watchlist = {}
 
     def stocks_to_watch(self):
-        active_stock_data = self.asset_screener.get_most_actives()["most_actives"]
-        for stock_info in active_stock_data:
-            symbol = stock_info['symbol']
-            self.watchlist[symbol] = {
-                'trade_count': stock_info['trade_count'],
-                'volume': stock_info['volume']
-            }
+        request_params = MostActivesRequest()
+        response = self.asset_screener.get_most_actives(request_params) 
+        active_stock_data = response.get("most_actives", [])
+
+        # Extract only the symbols and add them to the watchlist
+        self.watchlist = [stock_info['symbol'] for stock_info in active_stock_data if 'symbol' in stock_info]
+
+    def get_watchlist(self):
+        return self.watchlist
 
     def get_stock_data(self, symbol):
         end = datetime.now(ZoneInfo("America/Los_Angeles"))
@@ -48,11 +51,12 @@ class MarketDataCollector:
 
     def populate_watchlist(self):
         self.stock_collector.stocks_to_watch()
+        print(f"Watchlist populated with {len(self.stock_collector.get_watchlist())} stock symbols.")
 
     def collect_data_for_watchlist(self):
         self.populate_watchlist()
         collected_data = {}
-        for symbol in self.stock_collector.watchlist:
+        for symbol in self.stock_collector.get_watchlist():
             collected_data[symbol] = {
                 'stock_data': self.stock_collector.get_stock_data(symbol),
                 'option_chain_data': self.option_collector.get_option_chain_data(symbol),
