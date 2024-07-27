@@ -14,23 +14,50 @@ from alpaca.data.historical.screener import ScreenerClient
 
 
 class Watchlist:
+    """
+    this class uses the alpaca-py screener api reference:  `https://docs.alpaca.markets/reference/mostactives-1`
+    the screener returns a json response containing a list 'most_actives' contains a list of dictionaries, each dictionary contains the following keys:
+        - symbol: the stock symbol
+        - volume: the volume of the stock
+        - trade_count: the number of trades for the stock
+
+        once the data has been requested, the class will store
+         
+        the data in a dictionary with the symbol as the key and the volume and trade_count as values
+
+        the class will be used in other  classes, so that the data being requested is dynamic 
+    """
     def __init__(self, api_key, secret_key):
         self.stock_screener = ScreenerClient(api_key, secret_key)
-        self.watchlist = {}
+        self.active_stocks = {}
 
-    def request_most_active_assets(self):
+    def request_most_active_assets(self): 
         request_params = MostActivesRequest
         response = self.stock_screener.get_most_actives(request_params)
-        high_volume_assets = response
-        return high_volume_assets
+        high_volume_assets = response['most_actives'] 
+        
+        for asset in high_volume_assets:
+            symbol = asset['symbol']
+            volume = asset['volume']
+            trade_count = asset['trade_count']
+            self.active_stocks[symbol] = { # active_stocks = {[symbol]: {'volume': volume, 'trade_count': trade_count}}
+                'volume': volume,
+                'trade_count': trade_count
+            }
+
+    def get_watchlist(self):
+        return self.active_stocks 
+        
+    
 
 # I am refactoring the classes in this file to be more modular, each part should build upon the other. the watchlist collects the most actives
 # candles data will collect the historical data for the watchlist assets, then the option data will collect the option data for the watchlist assets
 # I will also make a class that cleans the data and prepares it for the model called prepare data with pandas and numpy.
-class CandlesData:
+class CandlestickData:
     def __init__(self, api_key, secret_key):
         self.historical_asset = StockHistoricalDataClient(api_key, secret_key)
-
+    # timeframe will be a variable passed in from a higher level class via an attribute 
+    # this allows for the data to be collected from different timeframes 
     def get_bars(self, symbol, timeframe, start, end):
         data = StockBarsRequest(symbol, timeframe, start, end)
         return self.historical_asset.get_bars(data)
