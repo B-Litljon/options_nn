@@ -45,8 +45,9 @@ class Watchlist:
                 'trade_count': trade_count
             }
 
-    def get_watchlist(self):
+    def show_list(self):
         return self.active_stocks 
+        # display the dictionary of active stocks for debugging purposes
         
     
 
