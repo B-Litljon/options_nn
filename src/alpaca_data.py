@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
+import json
 import pandas as pd
 import numpy as np
 
@@ -13,108 +14,71 @@ from alpaca.data.historical.option import OptionHistoricalDataClient
 from alpaca.data.historical.screener import ScreenerClient
 
 
-class Watchlist:
+class AlpacaData:
     """
-    this class uses the alpaca-py screener api reference:  `https://docs.alpaca.markets/reference/mostactives-1`
-    the screener returns a json response containing a list 'most_actives' contains a list of dictionaries, each dictionary contains the following keys:
-        - symbol: the stock symbol
-        - volume: the volume of the stock
-        - trade_count: the number of trades for the stock
+    this class will handle all data retrieval from the Alpaca API, including historical stock data, option chain data
 
-        once the data has been requested, the class will store
-         
-        the data in a dictionary with the symbol as the key and the volume and trade_count as values
+    AlpacaData methods:
+    .request_most_actives,
+    .request_candlesticks,
+    .request_option_chain,
+    .request_option_historical_data
 
-        the class will be used in other  classes, so that the data being requested is dynamic 
-    """
-    def __init__(self, api_key, secret_key):
-        self.stock_screener = ScreenerClient(api_key, secret_key)
-        self.active_stocks = {}
+    each method is related to eachother and will be used together.
 
-    def request_most_active_assets(self): 
-        request_params = MostActivesRequest
-        response = self.stock_screener.get_most_actives(request_params)
-        high_volume_assets = response['most_actives'] 
-        
-        for asset in high_volume_assets:
-            symbol = asset['symbol']
-            volume = asset['volume']
-            trade_count = asset['trade_count']
-            self.active_stocks[symbol] = { # active_stocks = {[symbol]: {'volume': volume, 'trade_count': trade_count}}
-                'volume': volume,
-                'trade_count': trade_count
-            }
+    data flow:
+    1. request_most_actives; this method is from the alpaca-py api wrapper, 
+    and will return a list of the most active stocks by volume (or tradecount, but I plan on using the volume as a req parameter)
+    we can include some more parameters to filter the list, but for now we will just use the default parameters. 
 
-    def show_list(self):
-        return self.active_stocks 
-        # display the dictionary of active stocks for debugging purposes
-        
+    2. request_candlesticks; this method will take the list of most active stocks and request the historical data for each stock, 
+    returning the open high low close volume for each stock. we will also include the timeframe as a parameter, this way
+    each instance of the class can be used for different timeframes.
+
+    3. request_option_chain; this method will take the list of most active stocks and request the option chain data for each stock,
     
 
-# I am refactoring the classes in this file to be more modular, each part should build upon the other. the watchlist collects the most actives
-# candles data will collect the historical data for the watchlist assets, then the option data will collect the option data for the watchlist assets
-# I will also make a class that cleans the data and prepares it for the model called prepare data with pandas and numpy.
-class CandlestickData:
-    def __init__(self, api_key, secret_key):
-        self.historical_asset = StockHistoricalDataClient(api_key, secret_key)
-    # timeframe will be a variable passed in from a higher level class via an attribute 
-    # this allows for the data to be collected from different timeframes 
-    def get_bars(self, symbol, timeframe, start, end):
-        data = StockBarsRequest(symbol, timeframe, start, end)
-        return self.historical_asset.get_bars(data)
+    when the data is neat and formatted the way we want, we can then use the data for training the model.
 
+    """
+    def __init__(self, api_key: str, secret_key: str, timeframe: str): # timeframe may need to be int
+        self.stock_historical_data_client = StockHistoricalDataClient(api_key, secret_key)
+        self.option_historical_data_client = OptionHistoricalDataClient(api_key, secret_key)
+        self.screener_client = ScreenerClient(api_key, secret_key)
+        self.watchlist = [] # this will be a list of the most active stocks and/or user inputted stocks
 
-# all this code is depricated now, I will be updating with cleaner more modular code soon. as of now, just using this as a reference to the api docs to save time
+    # needs to get user input for tickers, timeframe, and start/end dates
+    def request_most_actives(self):
+        """
+        this method will return a list of the most active stocks by volume and update the watchlist variable
+        """
+        most_actives_request = MostActivesRequest()
+        most_actives = self.screener_client.get_most_actives(most_actives_request)
+        return most_actives
 
-# class StockDataCollector:
-#     def __init__(self, api_key, secret_key, timeframe, days_back):
-#         self.historical_asset = StockHistoricalDataClient(api_key, secret_key)
-#         self.asset_screener = ScreenerClient(api_key, secret_key)
-#         self.timeframe = timeframe
-#         self.days_back = days_back
-#         self.watchlist = {}
+    # get historical stock data
+    def request_candlesticks(self, watchlist: list, timeframe: str):
+        """
+        this method will return the historical stock data for each stock in the watchlist
+        """
+        for stock in watchlist:
+            stock_bars_request = StockBarsRequest(
+                symbol=stock, # this variable name may be wrong
+                timeframe=timeframe,
+                limit=1000 # this may need to be a user input, and or may not be needed
+            )
+            stock_bars = self.stock_historical_data_client.get_stock_bars(stock_bars_request)
+            return stock_bars
 
-#     def stocks_to_watch(self):
-#         request_params = MostActivesRequest()
-#         response = self.asset_screener.get_most_actives(request_params) 
-#         active_stock_data = response.get("most_actives", [])
-
-#         # Extract only the symbols and add them to the watchlist
-#         self.watchlist = {stock['symbol']: None for stock in active_stock_data}
-
-#     def get_watchlist(self):
-#         return self.watchlist
-
-#     def get_stock_data(self, symbol):
-#         end = datetime.now(ZoneInfo("America/Los_Angeles"))
-#         start = end - timedelta(days=self.days_back)
-#         data = StockBarsRequest(symbol, self.timeframe, start, end)
-#         return self.historical_asset.get_bars(data)
-
-# class OptionDataCollector:
-#     def __init__(self, api_key, secret_key):
-#         self.historic_options = OptionHistoricalDataClient(api_key, secret_key)
-
-#     def get_option_chain_data(self, symbol):
-#         request_params = OptionChainRequest(symbol=symbol)
-#         option_chain_snapshot = self.historic_options.get_option_chain(request_params)
-#         return option_chain_snapshot
-
-# class MarketDataCollector:
-#     def __init__(self, api_key, secret_key, timeframe, days_back):
-#         self.stock_collector = StockDataCollector(api_key, secret_key, timeframe, days_back)
-#         self.option_collector = OptionDataCollector(api_key, secret_key)
-
-#     def populate_watchlist(self):
-#         self.stock_collector.stocks_to_watch()
-#         print(f"Watchlist populated with {len(self.stock_collector.get_watchlist())} stock symbols.")
-
-#     def collect_data_for_watchlist(self):
-#         self.populate_watchlist()
-#         collected_data = {}
-#         for symbol in self.stock_collector.get_watchlist():
-#             collected_data[symbol] = {
-#                 'stock_data': self.stock_collector.get_stock_data(symbol),
-#                 'option_chain_data': self.option_collector.get_option_chain_data(symbol),
-#             }
-#         return collected_data
+    # get option chain data
+    def request_option_chain(self, watchlist: list):
+        """
+        this method will return the option chain data for each stock in the watchlist
+        """
+        for stock in watchlist:
+            option_chain_request = OptionChainRequest(
+                symbol=stock,
+                limit=1000
+            )
+            option_chain = self.stock_historical_data_client.get_option_chain(option_chain_request)
+            return option_chain
