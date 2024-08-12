@@ -79,7 +79,7 @@ class AlpacaData:
         """
         for stock in watchlist:
             stock_bars_request = StockBarsRequest(
-                symbol=stock, # this variable name may be wrong
+                symbol=stock, # this variable name is wrong, it should iterate through the watchlist and extract the symbol from that
                 timeframe=timeframe,
                 limit=1000 # this may need to be a user input, and or may not be needed
             )
@@ -87,7 +87,7 @@ class AlpacaData:
             return stock_bars
 
     # get option chain data
-    def request_option_chain(self, watchlist: list):
+    def request_option_chain(self, watchlist: list, timeframe: str):
         """
         Retrieve option chain data for each stock in the watchlist.
 
@@ -102,7 +102,7 @@ class AlpacaData:
         """
         for stock in watchlist:
             option_chain_request = OptionChainRequest(
-                symbol=stock,
+                symbol=stock, # read the comment in the request_candlesticks method, same issue here
                 limit=1000
             )
             option_chain = self.stock_historical_data_client.get_option_chain(option_chain_request)
