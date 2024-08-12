@@ -50,7 +50,13 @@ class AlpacaData:
     # needs to get user input for tickers, timeframe, and start/end dates
     def request_most_actives(self):
         """
-        this method will return a list of the most active stocks by volume and update the watchlist variable
+        Retrieve a list of the most active stocks by volume and update the watchlist.
+
+        This method uses the Alpaca API to fetch the most active stocks based on trading volume.
+        The result is stored in the watchlist attribute for further processing.
+
+        Returns:
+            list: A list of the most active stocks
         """
         most_actives_request = MostActivesRequest()
         most_actives = self.screener_client.get_most_actives(most_actives_request)
@@ -59,7 +65,17 @@ class AlpacaData:
     # get historical stock data
     def request_candlesticks(self, watchlist: list, timeframe: str):
         """
-        this method will return the historical stock data for each stock in the watchlist
+        Fetch historical stock data for each stock in the watchlist.
+
+        This method retrieves candlestick data (open, high, low, close, volume) for the specified
+        stocks and timeframe using the Alpaca API.
+
+        Args:
+            watchlist (list): List of stock symbols to retrieve data for
+            timeframe (str): The timeframe for the candlestick data (e.g., '1D', '1H')
+
+        Returns:
+            dict: A dictionary containing historical stock data for each symbol in the watchlist
         """
         for stock in watchlist:
             stock_bars_request = StockBarsRequest(
@@ -73,7 +89,16 @@ class AlpacaData:
     # get option chain data
     def request_option_chain(self, watchlist: list):
         """
-        this method will return the option chain data for each stock in the watchlist
+        Retrieve option chain data for each stock in the watchlist.
+
+        This method fetches the current option chain, including various strike prices and
+        expiration dates, for the specified stocks using the Alpaca API.
+
+        Args:
+            watchlist (list): List of stock symbols to retrieve option chain data for
+
+        Returns:
+            dict: A dictionary containing option chain data for each symbol in the watchlist
         """
         for stock in watchlist:
             option_chain_request = OptionChainRequest(
