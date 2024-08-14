@@ -41,11 +41,25 @@ class AlpacaData:
     when the data is neat and formatted the way we want, we can then use the data for training the model.
 
     """
-    def __init__(self, api_key: str, secret_key: str, timeframe: str): # timeframe may need to be int
+    def __init__(self, api_key: str, secret_key: str, candle_timeframe: str, days_back: int): # timeframe may need to be int
         self.stock_historical_data_client = StockHistoricalDataClient(api_key, secret_key)
         self.option_historical_data_client = OptionHistoricalDataClient(api_key, secret_key)
         self.screener_client = ScreenerClient(api_key, secret_key)
-        self.watchlist = [] # this will be a list of the most active stocks and/or user inputted stocks
+        self.watchlist = [] 
+        self.set_data_window(candle_timeframe, days_back)
+
+    def set_data_window(self, candle_timeframe: str, days_back: int):
+        """
+        Set the candle timeframe and historical window for data requests.
+
+        Args:
+            candle_timeframe (str): The timeframe for each candle (e.g., '1D', '1H', '15Min')
+            days_back (int): Number of days to look back for historical data
+        """
+        self.candle_timeframe = candle_timeframe
+        self.days_back = days_back
+        self.end_date = datetime.now(ZoneInfo("America/New_York")) # set to new york timezone, but may need to be a user input, should default to pacific time
+        self.start_date = self.end_date - timedelta(days=self.days_back)
 
     # needs to get user input for tickers, timeframe, and start/end dates
     def request_most_actives(self):
@@ -77,14 +91,17 @@ class AlpacaData:
         Returns:
             dict: A dictionary containing historical stock data for each symbol in the watchlist
         """
+        results = {}
         for stock in watchlist:
             stock_bars_request = StockBarsRequest(
                 symbol=stock, # this variable name is wrong, it should iterate through the watchlist and extract the symbol from that
-                timeframe=timeframe,
-                limit=1000 # this may need to be a user input, and or may not be needed
+                timeframe=self.candle_timeframe,
+                start=self.start_date,
+                end=self.end_date
             )
             stock_bars = self.stock_historical_data_client.get_stock_bars(stock_bars_request)
-            return stock_bars
+            results[stock] = stock_bars
+        return results
 
     # get option chain data
     def request_option_chain(self, watchlist: list, timeframe: str):
@@ -100,10 +117,28 @@ class AlpacaData:
         Returns:
             dict: A dictionary containing option chain data for each symbol in the watchlist
         """
+        results = {}
         for stock in watchlist:
             option_chain_request = OptionChainRequest(
-                symbol=stock, # read the comment in the request_candlesticks method, same issue here
-                limit=1000
+                symbol=stock,
+                # gte = greater than or equal to, lte = less than or equal to
+                expiration_date_gte=self.start_date,
+                expiration_date_lte=self.end_date + timedelta(days=30)  # Assuming we want options expiring up to 30 days after the end date
             )
             option_chain = self.stock_historical_data_client.get_option_chain(option_chain_request)
             return option_chain
+        
+    def update_data_window(self, candle_timeframe: str = None, days_back: int = None):
+        """
+        Update the data window parameters and recalculate start and end dates.
+
+        Args:
+            candle_timeframe (str, optional): New candle timeframe
+            days_back (int, optional): New number of days to look back
+        """
+        if self.candle_timeframe:
+            self.candle_timeframe = candle_timeframe
+        if days_back is not None:
+            self.days_back = days_back
+
+
