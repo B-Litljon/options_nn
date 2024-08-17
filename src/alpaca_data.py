@@ -91,7 +91,7 @@ class AlpacaData:
         Returns:
             dict: A dictionary containing historical stock data for each symbol in the watchlist
         """
-        results = {}
+        results = {} #need to update method to request the stocks from watchlist
         for stock in watchlist:
             stock_bars_request = StockBarsRequest(
                 symbol=stock, # this variable name is wrong, it should iterate through the watchlist and extract the symbol from that
